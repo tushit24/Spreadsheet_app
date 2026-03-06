@@ -16,8 +16,6 @@ interface SpreadsheetGridProps {
 
 const COLUMN_COUNT = 100;
 const ROW_COUNT = 1000;
-const COLUMN_WIDTH = 120;
-const ROW_HEIGHT = 24;
 
 const getColumnLetter = (index: number): string => {
     let letter = "";
@@ -38,6 +36,16 @@ export default function SpreadsheetGrid({ sheetId }: SpreadsheetGridProps) {
     const [sheetFormatting, setSheetFormatting] = useState<SheetFormatting>({});
     const [activeCell, setActiveCell] = useState<{ row: number; col: number } | null>(null);
     const [syncState, setSyncState] = useState<SyncState>("idle");
+    const [columnWidths, setColumnWidths] = useState<Record<number, number>>({});
+    const [rowHeights, setRowHeights] = useState<Record<number, number>>({});
+
+    const onResizeCol = useCallback((col: number, width: number) => {
+        setColumnWidths(prev => ({ ...prev, [col]: width }));
+    }, []);
+
+    const onResizeRow = useCallback((row: number, height: number) => {
+        setRowHeights(prev => ({ ...prev, [row]: height }));
+    }, []);
 
     // Clipboard for copy/paste
     const clipboardRef = useRef<{ value: string; style?: CellStyle } | null>(null);
@@ -254,9 +262,11 @@ export default function SpreadsheetGrid({ sheetId }: SpreadsheetGridProps) {
             <div style={{ flex: 1, overflow: "hidden", display: "flex" }}>
                 <VirtualGrid
                     columnCount={COLUMN_COUNT}
-                    columnWidth={COLUMN_WIDTH}
+                    columnWidths={columnWidths}
                     rowCount={ROW_COUNT}
-                    rowHeight={ROW_HEIGHT}
+                    rowHeights={rowHeights}
+                    onResizeCol={onResizeCol}
+                    onResizeRow={onResizeRow}
                     width={gridDimensions.width}
                     height={gridDimensions.height}
                     sheetData={sheetData}
