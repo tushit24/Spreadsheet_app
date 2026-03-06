@@ -64,54 +64,39 @@ const ColumnHeader = memo(({ index, style, data }: ListChildComponentProps<{
         document.addEventListener("mouseup", onMouseUp);
     }, [data, index]);
 
+    // Keep react-window's position:absolute — use inner wrapper for relative positioning
     return (
-        <div
-            style={{
-                ...style,
-                borderRight: "1px solid #c0c0c0",
-                borderBottom: "1px solid #c0c0c0",
-                backgroundColor: isActive ? "#e8f0fe" : "#f8f9fa",
-                fontFamily: "Arial, sans-serif",
-                fontSize: "12px",
+        <div style={{
+            ...style,
+            borderRight: "1px solid #c0c0c0",
+            borderBottom: "1px solid #c0c0c0",
+            backgroundColor: isActive ? "#e8f0fe" : "#f8f9fa",
+        }}>
+            <div style={{
+                position: "relative", width: "100%", height: "100%",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontFamily: "Arial, sans-serif", fontSize: "12px",
                 color: isActive ? "#1a73e8" : "#666",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                userSelect: "none",
                 fontWeight: isActive ? 700 : 400,
-                cursor: "default",
-                position: "relative",
-            }}
-        >
-            {getColumnLetter(index)}
-            {/* Resize handle */}
-            <div
-                onMouseDown={onMouseDown}
-                style={{
-                    position: "absolute",
-                    right: 0,
-                    top: 0,
-                    width: 6,
-                    height: "100%",
-                    cursor: "col-resize",
-                    zIndex: 10,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                }}
-                title="Drag to resize column"
-            >
-                <div style={{
-                    width: 2,
-                    height: "60%",
-                    background: "#c0c0c0",
-                    borderRadius: 1,
-                    opacity: 0,
-                    transition: "opacity 0.15s"
-                }}
-                    onMouseEnter={e => ((e.currentTarget as HTMLElement).style.opacity = "1")}
-                    onMouseLeave={e => ((e.currentTarget as HTMLElement).style.opacity = "0")}
-                />
+                userSelect: "none", cursor: "default",
+            }}>
+                {getColumnLetter(index)}
+                {/* Resize handle */}
+                <div
+                    onMouseDown={onMouseDown}
+                    style={{
+                        position: "absolute", right: 0, top: 0,
+                        width: 6, height: "100%", cursor: "col-resize", zIndex: 10,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                    }}
+                    title="Drag to resize column"
+                >
+                    <div
+                        style={{ width: 2, height: "60%", background: "#c0c0c0", borderRadius: 1, opacity: 0, transition: "opacity 0.15s" }}
+                        onMouseEnter={e => ((e.currentTarget as HTMLElement).style.opacity = "1")}
+                        onMouseLeave={e => ((e.currentTarget as HTMLElement).style.opacity = "0")}
+                    />
+                </div>
             </div>
         </div>
     );
@@ -150,54 +135,39 @@ const RowHeader = memo(({ index, style, data }: ListChildComponentProps<{
         document.addEventListener("mouseup", onMouseUp);
     }, [data, index]);
 
+    // Keep react-window's position:absolute — use inner wrapper for relative positioning
     return (
-        <div
-            style={{
-                ...style,
-                borderBottom: "1px solid #c0c0c0",
-                borderRight: "1px solid #c0c0c0",
-                backgroundColor: isActive ? "#e8f0fe" : "#f8f9fa",
-                fontFamily: "Arial, sans-serif",
-                fontSize: "12px",
+        <div style={{
+            ...style,
+            borderBottom: "1px solid #c0c0c0",
+            borderRight: "1px solid #c0c0c0",
+            backgroundColor: isActive ? "#e8f0fe" : "#f8f9fa",
+        }}>
+            <div style={{
+                position: "relative", width: "100%", height: "100%",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontFamily: "Arial, sans-serif", fontSize: "12px",
                 color: isActive ? "#1a73e8" : "#666",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                userSelect: "none",
                 fontWeight: isActive ? 700 : 400,
-                cursor: "default",
-                position: "relative",
-            }}
-        >
-            {index + 1}
-            {/* Resize handle */}
-            <div
-                onMouseDown={onMouseDown}
-                style={{
-                    position: "absolute",
-                    bottom: 0,
-                    left: 0,
-                    height: 6,
-                    width: "100%",
-                    cursor: "row-resize",
-                    zIndex: 10,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                }}
-                title="Drag to resize row"
-            >
-                <div style={{
-                    height: 2,
-                    width: "60%",
-                    background: "#c0c0c0",
-                    borderRadius: 1,
-                    opacity: 0,
-                    transition: "opacity 0.15s"
-                }}
-                    onMouseEnter={e => ((e.currentTarget as HTMLElement).style.opacity = "1")}
-                    onMouseLeave={e => ((e.currentTarget as HTMLElement).style.opacity = "0")}
-                />
+                userSelect: "none", cursor: "default",
+            }}>
+                {index + 1}
+                {/* Resize handle */}
+                <div
+                    onMouseDown={onMouseDown}
+                    style={{
+                        position: "absolute", bottom: 0, left: 0,
+                        height: 6, width: "100%", cursor: "row-resize", zIndex: 10,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                    }}
+                    title="Drag to resize row"
+                >
+                    <div
+                        style={{ height: 2, width: "60%", background: "#c0c0c0", borderRadius: 1, opacity: 0, transition: "opacity 0.15s" }}
+                        onMouseEnter={e => ((e.currentTarget as HTMLElement).style.opacity = "1")}
+                        onMouseLeave={e => ((e.currentTarget as HTMLElement).style.opacity = "0")}
+                    />
+                </div>
             </div>
         </div>
     );
