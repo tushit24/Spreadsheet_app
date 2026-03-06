@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useRef, useState } from "react";
 import { CellStyle } from "@/types/spreadsheet";
 
 const FONTS = ["Arial", "Times New Roman", "Courier New", "Georgia", "Verdana", "Comic Sans MS", "Trebuchet MS"];
@@ -10,6 +10,7 @@ interface ToolbarProps {
     style: CellStyle;
     onStyleChange: (patch: Partial<CellStyle>) => void;
     disabled?: boolean;
+    onExport?: (format: "csv" | "json") => void;
 }
 
 function IconBtn({
@@ -35,114 +36,155 @@ function IconBtn({
     );
 }
 
-export default function Toolbar({ style, onStyleChange, disabled = false }: ToolbarProps) {
+export default function Toolbar({ style, onStyleChange, disabled = false, onExport }: ToolbarProps) {
     const s = style;
+    const [exportOpen, setExportOpen] = useState(false);
+    const exportRef = useRef<HTMLDivElement>(null);
+
+    // Close export dropdown when clicking outside
+    React.useEffect(() => {
+        if (!exportOpen) return;
+        const handler = (e: MouseEvent) => {
+            if (exportRef.current && !exportRef.current.contains(e.target as Node)) {
+                setExportOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
+    }, [exportOpen]);
 
     return (
         <div
             className="flex items-center gap-1 px-2 border-b border-gray-200 bg-[#f8f9fa] flex-shrink-0"
-            style={{ height: 40, fontFamily: "Arial, sans-serif", opacity: disabled ? 0.45 : 1, pointerEvents: disabled ? "none" : "auto" }}
+            style={{ height: 40, fontFamily: "Arial, sans-serif" }}
         >
-            {/* Font family */}
-            <select
-                value={s.fontFamily ?? "Arial"}
-                onChange={(e) => onStyleChange({ fontFamily: e.target.value })}
-                className="text-xs border border-gray-300 rounded px-1 py-0.5 bg-white h-6 w-36 focus:outline-none"
-                style={{ color: "#202124" }}
-                title="Font"
+            {/* Formatting controls — disabled when no cell selected */}
+            <div
+                className="flex items-center gap-1"
+                style={{ opacity: disabled ? 0.45 : 1, pointerEvents: disabled ? "none" : "auto" }}
             >
-                {FONTS.map((f) => (
-                    <option key={f} value={f}>
-                        {f}
-                    </option>
-                ))}
-            </select>
+                {/* Font family */}
+                <select
+                    value={s.fontFamily ?? "Arial"}
+                    onChange={(e) => onStyleChange({ fontFamily: e.target.value })}
+                    className="text-xs border border-gray-300 rounded px-1 py-0.5 bg-white h-6 w-36 focus:outline-none"
+                    style={{ color: "#202124" }}
+                    title="Font"
+                >
+                    {FONTS.map((f) => (
+                        <option key={f} value={f}>{f}</option>
+                    ))}
+                </select>
 
-            {/* Font size */}
-            <select
-                value={s.fontSize ?? 12}
-                onChange={(e) => onStyleChange({ fontSize: Number(e.target.value) })}
-                className="text-xs border border-gray-300 rounded px-1 py-0.5 bg-white h-6 w-14 focus:outline-none"
-                style={{ color: "#202124" }}
-                title="Font size"
-            >
-                {SIZES.map((n) => (
-                    <option key={n} value={n}>
-                        {n}
-                    </option>
-                ))}
-            </select>
+                {/* Font size */}
+                <select
+                    value={s.fontSize ?? 12}
+                    onChange={(e) => onStyleChange({ fontSize: Number(e.target.value) })}
+                    className="text-xs border border-gray-300 rounded px-1 py-0.5 bg-white h-6 w-14 focus:outline-none"
+                    style={{ color: "#202124" }}
+                    title="Font size"
+                >
+                    {SIZES.map((n) => (
+                        <option key={n} value={n}>{n}</option>
+                    ))}
+                </select>
 
-            <Divider />
+                <Divider />
 
-            {/* Bold */}
-            <IconBtn title="Bold (Ctrl+B)" active={s.bold} onClick={() => onStyleChange({ bold: !s.bold })}>
-                <span style={{ fontWeight: 700, fontSize: 13 }}>B</span>
-            </IconBtn>
+                <IconBtn title="Bold (Ctrl+B)" active={s.bold} onClick={() => onStyleChange({ bold: !s.bold })}>
+                    <span style={{ fontWeight: 700, fontSize: 13 }}>B</span>
+                </IconBtn>
+                <IconBtn title="Italic (Ctrl+I)" active={s.italic} onClick={() => onStyleChange({ italic: !s.italic })}>
+                    <span style={{ fontStyle: "italic", fontSize: 13 }}>I</span>
+                </IconBtn>
+                <IconBtn title="Underline (Ctrl+U)" active={s.underline} onClick={() => onStyleChange({ underline: !s.underline })}>
+                    <span style={{ textDecoration: "underline", fontSize: 13 }}>U</span>
+                </IconBtn>
+                <IconBtn title="Strikethrough" active={s.strikethrough} onClick={() => onStyleChange({ strikethrough: !s.strikethrough })}>
+                    <span style={{ textDecoration: "line-through", fontSize: 13 }}>S</span>
+                </IconBtn>
 
-            {/* Italic */}
-            <IconBtn title="Italic (Ctrl+I)" active={s.italic} onClick={() => onStyleChange({ italic: !s.italic })}>
-                <span style={{ fontStyle: "italic", fontSize: 13 }}>I</span>
-            </IconBtn>
+                <Divider />
 
-            {/* Underline */}
-            <IconBtn title="Underline (Ctrl+U)" active={s.underline} onClick={() => onStyleChange({ underline: !s.underline })}>
-                <span style={{ textDecoration: "underline", fontSize: 13 }}>U</span>
-            </IconBtn>
+                {/* Text color */}
+                <label className="relative cursor-pointer flex items-center justify-center w-7 h-7 rounded hover:bg-gray-100 text-gray-600 text-xs" title="Text color">
+                    <span className="text-sm leading-none">A</span>
+                    <span className="absolute bottom-0.5 left-1 right-1 h-1 rounded-sm" style={{ backgroundColor: s.color ?? "#000000" }} />
+                    <input type="color" className="sr-only" value={s.color ?? "#000000"} onChange={(e) => onStyleChange({ color: e.target.value })} />
+                </label>
 
-            {/* Strikethrough */}
-            <IconBtn title="Strikethrough" active={s.strikethrough} onClick={() => onStyleChange({ strikethrough: !s.strikethrough })}>
-                <span style={{ textDecoration: "line-through", fontSize: 13 }}>S</span>
-            </IconBtn>
+                {/* Background color */}
+                <label className="relative cursor-pointer flex items-center justify-center w-7 h-7 rounded hover:bg-gray-100 text-xs text-gray-600" title="Fill color">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M19 11l-8-8-8.5 8.5a5.5 5.5 0 0 0 7.78 7.78L19 11z" />
+                        <path d="M20 16s-1 1.5-1 2.5a1.5 1.5 0 0 0 3 0C22 17.5 20 16 20 16z" />
+                    </svg>
+                    <span className="absolute bottom-0.5 left-1 right-1 h-1 rounded-sm" style={{ backgroundColor: s.background ?? "#ffffff" }} />
+                    <input type="color" className="sr-only" value={s.background ?? "#ffffff"} onChange={(e) => onStyleChange({ background: e.target.value })} />
+                </label>
 
-            <Divider />
+                <Divider />
 
-            {/* Text color */}
-            <label className="relative cursor-pointer flex items-center justify-center w-7 h-7 rounded hover:bg-gray-100 text-gray-600 text-xs" title="Text color">
-                <span className="text-sm leading-none">A</span>
-                <span
-                    className="absolute bottom-0.5 left-1 right-1 h-1 rounded-sm"
-                    style={{ backgroundColor: s.color ?? "#000000" }}
-                />
-                <input
-                    type="color"
-                    className="sr-only"
-                    value={s.color ?? "#000000"}
-                    onChange={(e) => onStyleChange({ color: e.target.value })}
-                />
-            </label>
+                <IconBtn title="Align left" active={s.align === "left" || !s.align} onClick={() => onStyleChange({ align: "left" })}>
+                    <AlignLeftIcon />
+                </IconBtn>
+                <IconBtn title="Align center" active={s.align === "center"} onClick={() => onStyleChange({ align: "center" })}>
+                    <AlignCenterIcon />
+                </IconBtn>
+                <IconBtn title="Align right" active={s.align === "right"} onClick={() => onStyleChange({ align: "right" })}>
+                    <AlignRightIcon />
+                </IconBtn>
+            </div>
 
-            {/* Background color */}
-            <label className="relative cursor-pointer flex items-center justify-center w-7 h-7 rounded hover:bg-gray-100 text-xs text-gray-600" title="Fill color">
-                {/* paint bucket SVG */}
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M19 11l-8-8-8.5 8.5a5.5 5.5 0 0 0 7.78 7.78L19 11z" />
-                    <path d="M20 16s-1 1.5-1 2.5a1.5 1.5 0 0 0 3 0C22 17.5 20 16 20 16z" />
-                </svg>
-                <span
-                    className="absolute bottom-0.5 left-1 right-1 h-1 rounded-sm"
-                    style={{ backgroundColor: s.background ?? "#ffffff" }}
-                />
-                <input
-                    type="color"
-                    className="sr-only"
-                    value={s.background ?? "#ffffff"}
-                    onChange={(e) => onStyleChange({ background: e.target.value })}
-                />
-            </label>
+            {/* Push export to the right */}
+            <div style={{ flex: 1 }} />
 
-            <Divider />
+            {/* Export dropdown — always enabled */}
+            {onExport && (
+                <div ref={exportRef} style={{ position: "relative" }}>
+                    <button
+                        onClick={() => setExportOpen((o) => !o)}
+                        className="flex items-center gap-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded px-2 h-6 hover:bg-gray-50 active:bg-gray-100 transition-colors select-none"
+                        title="Export spreadsheet"
+                    >
+                        Export
+                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                    </button>
 
-            {/* Alignment */}
-            <IconBtn title="Align left" active={s.align === "left" || !s.align} onClick={() => onStyleChange({ align: "left" })}>
-                <AlignLeftIcon />
-            </IconBtn>
-            <IconBtn title="Align center" active={s.align === "center"} onClick={() => onStyleChange({ align: "center" })}>
-                <AlignCenterIcon />
-            </IconBtn>
-            <IconBtn title="Align right" active={s.align === "right"} onClick={() => onStyleChange({ align: "right" })}>
-                <AlignRightIcon />
-            </IconBtn>
+                    {exportOpen && (
+                        <div style={{
+                            position: "absolute", right: 0, top: "calc(100% + 4px)",
+                            background: "white", border: "1px solid #e5e7eb",
+                            borderRadius: 6, boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
+                            minWidth: 160, zIndex: 100, overflow: "hidden",
+                        }}>
+                            <button
+                                onClick={() => { onExport("csv"); setExportOpen(false); }}
+                                className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                    <polyline points="14 2 14 8 20 8" />
+                                </svg>
+                                Download CSV
+                            </button>
+                            <button
+                                onClick={() => { onExport("json"); setExportOpen(false); }}
+                                className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                    <polyline points="14 2 14 8 20 8" />
+                                    <line x1="8" y1="13" x2="16" y2="13" /><line x1="8" y1="17" x2="16" y2="17" />
+                                </svg>
+                                Download JSON
+                            </button>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 }

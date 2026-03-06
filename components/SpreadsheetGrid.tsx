@@ -9,6 +9,7 @@ import Presence from "./Presence";
 import { useAuth } from "@/contexts/AuthContext";
 import SaveIndicator, { SyncState } from "./SaveIndicator";
 import Toolbar from "./Toolbar";
+import { exportToCSV, exportToJSON } from "@/lib/export";
 
 interface SpreadsheetGridProps {
     sheetId: string;
@@ -46,6 +47,11 @@ export default function SpreadsheetGrid({ sheetId }: SpreadsheetGridProps) {
     const onResizeRow = useCallback((row: number, height: number) => {
         setRowHeights(prev => ({ ...prev, [row]: height }));
     }, []);
+
+    const handleExport = useCallback((format: "csv" | "json") => {
+        if (format === "csv") exportToCSV(sheetData);
+        else exportToJSON(sheetData);
+    }, [sheetData]);
 
     // Clipboard for copy/paste
     const clipboardRef = useRef<{ value: string; style?: CellStyle } | null>(null);
@@ -230,6 +236,7 @@ export default function SpreadsheetGrid({ sheetId }: SpreadsheetGridProps) {
                 style={activeCellStyle}
                 onStyleChange={applyFormat}
                 disabled={!activeCell}
+                onExport={handleExport}
             />
 
             {/* ── Formula Bar ── */}
