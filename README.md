@@ -106,6 +106,7 @@ npm run dev
 2. Import the project in [Vercel](https://vercel.com).
 3. Add the `NEXT_PUBLIC_FIREBASE_*` environment variables in **Project Settings → Environment Variables**.
 4. Deploy — Vercel will build and publish automatically.
+5. Live link: https://spreadsheet-app-ivory.vercel.app/
 
 ---
 
