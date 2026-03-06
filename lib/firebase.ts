@@ -20,25 +20,18 @@ import {
 import { SheetData, SheetFormatting } from "@/types/spreadsheet";
 
 // ---------------------------------------------------------------------------
-// Firebase config – values come from .env.local / Vercel Environment Variables
+// Firebase config
+// NEXT_PUBLIC_ vars are injected at build time. Hardcoded fallbacks ensure
+// the app works on Vercel even if the vars aren't picked up during the build.
+// These are public client-side keys — safe to include in source.
 // ---------------------------------------------------------------------------
-const getEnv = (key: string): string => {
-    const val = process.env[key];
-    if (!val) {
-        console.error(
-            `[Firebase] Missing env var: ${key}. Add it to .env.local or Vercel Project Settings.`
-        );
-    }
-    return val ?? "";
-};
-
 const firebaseConfig = {
-    apiKey: getEnv("NEXT_PUBLIC_FIREBASE_API_KEY"),
-    authDomain: getEnv("NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN"),
-    projectId: getEnv("NEXT_PUBLIC_FIREBASE_PROJECT_ID"),
-    storageBucket: getEnv("NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET"),
-    messagingSenderId: getEnv("NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID"),
-    appId: getEnv("NEXT_PUBLIC_FIREBASE_APP_ID"),
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? "AIzaSyABb6Nz_3QbgsijJeCyQRTNwq6dd0N_lCs",
+    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ?? "collab-sheets-app.firebaseapp.com",
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? "collab-sheets-app",
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ?? "collab-sheets-app.firebasestorage.app",
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ?? "323679239573",
+    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID ?? "1:323679239573:web:52ecec33d9d133df150a9c",
 };
 
 // Prevent re-initialization on Next.js hot reloads
