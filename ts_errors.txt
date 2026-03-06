@@ -1,0 +1,2 @@
+﻿components/VirtualGrid.tsx(4,10): error TS2305: Module '"react-window"' has no exported member 'FixedSizeGrid'.
+components/VirtualGrid.tsx(4,33): error TS2724: '"react-window"' has no exported member named 'GridChildComponentProps'. Did you mean 'CellComponentProps'?
