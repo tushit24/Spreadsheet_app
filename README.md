@@ -29,9 +29,9 @@ app/
 
 components/
 ├── SpreadsheetGrid.tsx # Core orchestrator — state, presence, sync, keyboard nav
-├── VirtualGrid.tsx     # react-window virtualized grid + sticky headers
+├── VirtualGrid.tsx     # react-window virtualized grid + sticky headers + resize handles
 ├── Cell.tsx            # Individual cell (active/inactive, formatting aware)
-├── Toolbar.tsx         # Google Sheets–style formatting toolbar
+├── Toolbar.tsx         # Google Sheets–style formatting toolbar + Export dropdown
 ├── Presence.tsx        # Real-time collaborator presence display
 ├── SaveIndicator.tsx   # Saving/Saved/Error sync state badge
 └── ProtectedRoute.tsx  # Auth guard — redirects unauthenticated users
@@ -41,6 +41,7 @@ lib/
 ├── auth.ts             # Google + anonymous sign-in
 ├── formulas.ts         # Formula parser and evaluator (=A1+B2 style)
 ├── dependencyGraph.ts  # Tracks cell dependencies for cascading formula updates
+├── export.ts           # CSV and JSON export utilities
 └── userColor.ts        # Deterministic user colour generation
 
 contexts/
@@ -70,15 +71,15 @@ types/
 ## Setup Instructions
 
 ### Prerequisites
-- Node.js ≥ 18
+- Node.js >= 18
 - A Firebase project with **Firestore** and **Authentication** enabled
 - Google Sign-In method enabled in Firebase Auth console
 - (Optional) Anonymous sign-in enabled for Guest mode
 
 ### 1. Clone
 ```bash
-git clone https://github.com/your-username/collab-sheets.git
-cd collab-sheets
+git clone https://github.com/tushit24/Spreadsheet_app.git
+cd Spreadsheet_app
 npm install
 ```
 
@@ -114,6 +115,8 @@ npm run dev
 - **Live presence indicators** — see who else is editing with color-coded avatars
 - **Formula engine** — supports `=A1+B2`, `=SUM`-style expressions with circular dependency detection
 - **Rich cell formatting** — font family, size, bold, italic, underline, strikethrough, text color, fill color, alignment
+- **Column & row resizing** — drag any column or row border to resize, exactly like Google Sheets (min 60px / 20px)
+- **Export** — download the sheet as `.csv` or `.json` via the **Export ▼** toolbar button
 - **Sticky row & column headers** — synchronized scroll with the virtualized grid
 - **Keyboard navigation** — Arrow keys, Tab, Enter; `Ctrl+B/I/U` shortcuts; `Ctrl+C/V` copy-paste
 - **Save indicator** — real-time "Saving… / ✔ Saved / ⚠ Error" badge
