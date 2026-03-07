@@ -28,7 +28,7 @@ function IconBtn({
         <button
             title={title}
             onClick={onClick}
-            className={`flex items-center justify-center w-7 h-7 rounded text-sm transition-colors select-none
+            className={`flex items-center justify-center w-7 h-7 rounded-md text-sm transition-colors select-none
             ${active ? "bg-blue-100 text-blue-700 font-semibold" : "text-gray-600 hover:bg-gray-100"}`}
         >
             {children}
@@ -107,14 +107,14 @@ export default function Toolbar({ style, onStyleChange, disabled = false, onExpo
                 <Divider />
 
                 {/* Text color */}
-                <label className="relative cursor-pointer flex items-center justify-center w-7 h-7 rounded hover:bg-gray-100 text-gray-600 text-xs" title="Text color">
+                <label className="relative cursor-pointer flex items-center justify-center w-7 h-7 rounded-md hover:bg-gray-100 text-gray-600 text-xs" title="Text color">
                     <span className="text-sm leading-none">A</span>
                     <span className="absolute bottom-0.5 left-1 right-1 h-1 rounded-sm" style={{ backgroundColor: s.color ?? "#000000" }} />
                     <input type="color" className="sr-only" value={s.color ?? "#000000"} onChange={(e) => onStyleChange({ color: e.target.value })} />
                 </label>
 
                 {/* Background color */}
-                <label className="relative cursor-pointer flex items-center justify-center w-7 h-7 rounded hover:bg-gray-100 text-xs text-gray-600" title="Fill color">
+                <label className="relative cursor-pointer flex items-center justify-center w-7 h-7 rounded-md hover:bg-gray-100 text-xs text-gray-600" title="Fill color">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M19 11l-8-8-8.5 8.5a5.5 5.5 0 0 0 7.78 7.78L19 11z" />
                         <path d="M20 16s-1 1.5-1 2.5a1.5 1.5 0 0 0 3 0C22 17.5 20 16 20 16z" />

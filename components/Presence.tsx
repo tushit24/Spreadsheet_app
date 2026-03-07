@@ -39,14 +39,11 @@ export default function Presence({ sheetId }: { sheetId: string }) {
                 {others.map(collaborator => (
                     <div
                         key={collaborator.uid}
-                        className="flex items-center gap-2"
+                        className="flex items-center justify-center w-7 h-7 rounded-full text-white text-xs font-semibold shadow-sm border border-white/20"
+                        style={{ backgroundColor: collaborator.color }}
                         title={collaborator.name}
                     >
-                        <span
-                            className="w-2.5 h-2.5 rounded-full"
-                            style={{ backgroundColor: collaborator.color }}
-                        ></span>
-                        <span className="text-sm text-gray-700">{collaborator.name}</span>
+                        {collaborator.name.charAt(0).toUpperCase()}
                     </div>
                 ))}
             </div>

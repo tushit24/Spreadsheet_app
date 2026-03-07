@@ -23,12 +23,14 @@ export default function DashboardPage() {
     const { user, logout } = useAuth();
     const router = useRouter();
     const [documents, setDocuments] = useState<SheetDoc[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [isCreating, setIsCreating] = useState(false);
     const [showModal, setShowModal] = useState(false);
 
     useEffect(() => {
         const unsubscribe = subscribeToUserSheets((sheets) => {
             setDocuments(sheets as SheetDoc[]);
+            setIsLoading(false);
         });
         return () => unsubscribe();
     }, []);
@@ -100,11 +102,34 @@ export default function DashboardPage() {
                         </div>
                     </header>
 
-                    {documents.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-24 text-center">
-                            <FileSpreadsheet className="w-16 h-16 text-gray-300 mb-4" />
-                            <p className="text-gray-500 text-lg font-medium">No spreadsheets yet</p>
-                            <p className="text-gray-400 text-sm mt-1">Click &ldquo;New Blank Spreadsheet&rdquo; to get started</p>
+                    {isLoading ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                            {[1, 2, 3, 4].map((n) => (
+                                <div key={n} className="bg-white border border-gray-100 rounded-xl h-40 animate-pulse p-5 flex flex-col">
+                                    <div className="w-8 h-8 rounded bg-gray-200 mb-4" />
+                                    <div className="h-5 bg-gray-200 rounded w-3/4 mb-auto" />
+                                    <div className="border-t border-gray-50 pt-3 mt-4">
+                                        <div className="h-3 bg-gray-200 rounded w-1/2" />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : documents.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl border border-dashed border-gray-300 shadow-sm mx-auto max-w-3xl">
+                            <div className="bg-green-50 p-4 rounded-full mb-4">
+                                <FileSpreadsheet className="w-10 h-10 text-green-600" />
+                            </div>
+                            <h2 className="text-xl font-bold text-gray-900">No spreadsheets yet</h2>
+                            <p className="text-gray-500 mt-2 max-w-md">
+                                Create your first spreadsheet to start organizing your data and collaborating with your team.
+                            </p>
+                            <button
+                                onClick={handleNewSheetClick}
+                                className="mt-6 flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 px-5 py-2.5 rounded-lg transition-all font-medium shadow-sm"
+                            >
+                                <Plus className="w-5 h-5" />
+                                Create Spreadsheet
+                            </button>
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

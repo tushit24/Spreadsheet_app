@@ -62,7 +62,7 @@ export default function DeleteSheetModal({
                         <button
                             onClick={onConfirm}
                             disabled={isDeleting}
-                            className="px-5 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors shadow-sm disabled:opacity-50 flex items-center gap-1.5"
+                            className="px-5 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors shadow-sm disabled:opacity-50 flex items-center gap-1.5"
                         >
                             {isDeleting ? (
                                 <>

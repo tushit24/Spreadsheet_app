@@ -115,7 +115,8 @@ npm run dev
 - **Real-time multi-user collaboration** via Firestore `onSnapshot`
 - **Custom sheet names** — create with a specific name and rename inline directly in the editor header
 - **Sheet deletion & Metadata** — owners can delete their spreadsheets; dashboard shows who last edited the sheet and when
-- **Live presence indicators** — see who else is editing with color-coded avatars
+- **Refined UI/UX** — smooth loading skeletons, friendly empty states, hover-highlighted cells, custom scrollbars, and a modernized, Google-Sheets inspired toolbar
+- **Live presence indicators** — see who else is editing with color-coded avatar initials
 - **Formula engine** — supports `=A1+B2`, `=SUM`-style expressions with circular dependency detection
 - **Rich cell formatting** — font family, size, bold, italic, underline, strikethrough, text color, fill color, alignment
 - **Column & row resizing** — drag any column or row border to resize, exactly like Google Sheets (min 60px / 20px)

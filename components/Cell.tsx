@@ -54,19 +54,20 @@ const Cell = memo(function Cell({
             style={{
                 ...style,
                 boxSizing: "border-box",
-                backgroundColor: isActive ? bgColor : bgColor,
+                backgroundColor: isActive ? "#eff6ff" : bgColor, // blue-50 when active
                 borderRight: "1px solid #e2e3e3",
                 borderBottom: "1px solid #e2e3e3",
                 padding: 0,
                 position: "absolute",  // react-window needs this
+                ...(isActive ? { boxShadow: "inset 0 0 0 1px #eff6ff" } : {})
             }}
-            className={`select-none flex items-center relative${isActive ? " z-10" : ""}`}
+            className={`select-none flex items-center relative transition-colors ${isActive ? "z-10" : "hover:bg-gray-50"}`}
             onClick={onClick}
         >
             {isActive && (
                 <div
-                    className="absolute inset-0 pointer-events-none"
-                    style={{ border: "2px solid #1a73e8", zIndex: 20 }}
+                    className="absolute inset-0 pointer-events-none shadow-inner"
+                    style={{ border: "2px solid #3b82f6", zIndex: 20 }} // border-blue-500
                 />
             )}
             {isActive ? (
