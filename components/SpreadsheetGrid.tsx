@@ -4,12 +4,13 @@ import React, { useState, useCallback, useEffect, useRef, useMemo } from "react"
 import VirtualGrid from "./VirtualGrid";
 import { SheetData, SheetFormatting, CellStyle } from "@/types/spreadsheet";
 import { buildDependencyGraph, updateDependents, DependencyGraph } from "@/lib/dependencyGraph";
-import { subscribeToSheet, saveCellValue, saveCellFormat, joinPresence, leavePresence } from "@/lib/firebase";
+import { subscribeToSheet, saveCellValue, saveCellFormat, joinPresence, leavePresence, subscribeToSheetTitle, updateSheetTitle } from "@/lib/firebase";
 import Presence from "./Presence";
 import { useAuth } from "@/contexts/AuthContext";
 import SaveIndicator, { SyncState } from "./SaveIndicator";
 import Toolbar from "./Toolbar";
 import { exportToCSV, exportToJSON } from "@/lib/export";
+import SheetTitle from "./SheetTitle";
 
 interface SpreadsheetGridProps {
     sheetId: string;
@@ -39,6 +40,7 @@ export default function SpreadsheetGrid({ sheetId }: SpreadsheetGridProps) {
     const [syncState, setSyncState] = useState<SyncState>("idle");
     const [columnWidths, setColumnWidths] = useState<Record<number, number>>({});
     const [rowHeights, setRowHeights] = useState<Record<number, number>>({});
+    const [sheetTitle, setSheetTitle] = useState("Untitled Spreadsheet");
 
     const onResizeCol = useCallback((col: number, width: number) => {
         setColumnWidths(prev => ({ ...prev, [col]: width }));
@@ -47,6 +49,18 @@ export default function SpreadsheetGrid({ sheetId }: SpreadsheetGridProps) {
     const onResizeRow = useCallback((row: number, height: number) => {
         setRowHeights(prev => ({ ...prev, [row]: height }));
     }, []);
+
+    // -----------------------------------------------------------------------
+    // Sheet title real-time subscription
+    // -----------------------------------------------------------------------
+    useEffect(() => {
+        const unsub = subscribeToSheetTitle(sheetId, (t) => setSheetTitle(t));
+        return unsub;
+    }, [sheetId]);
+
+    const handleTitleSave = useCallback((newTitle: string) => {
+        updateSheetTitle(sheetId, newTitle).catch(console.error);
+    }, [sheetId]);
 
     const handleExport = useCallback((format: "csv" | "json") => {
         if (format === "csv") exportToCSV(sheetData);
@@ -225,9 +239,7 @@ export default function SpreadsheetGrid({ sheetId }: SpreadsheetGridProps) {
                 padding: "0 1rem", height: PAGE_HEADER, borderBottom: "1px solid #e5e7eb",
                 flexShrink: 0, background: "white", zIndex: 40
             }}>
-                <h1 style={{ fontWeight: 600, color: "#111", fontSize: "1.125rem", margin: 0 }}>
-                    Spreadsheet: {sheetId.slice(0, 8)}…
-                </h1>
+                <SheetTitle initialTitle={sheetTitle} onSave={handleTitleSave} />
                 <SaveIndicator state={syncState} />
             </header>
 

@@ -7,25 +7,40 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { subscribeToUserSheets, createNewSpreadsheet } from "@/lib/firebase";
+import CreateSheetModal from "@/components/CreateSheetModal";
+
+interface SheetDoc {
+    id: string;
+    title?: string;
+    name?: string;
+    updatedAt?: unknown;
+}
 
 export default function DashboardPage() {
     const { user, logout } = useAuth();
     const router = useRouter();
-    const [documents, setDocuments] = useState<Array<{ id: string; name?: string; updatedAt?: unknown }>>([]);
+    const [documents, setDocuments] = useState<SheetDoc[]>([]);
     const [isCreating, setIsCreating] = useState(false);
+    const [showModal, setShowModal] = useState(false);
 
     useEffect(() => {
-        const unsubscribe = subscribeToUserSheets((sheets: Array<{ id: string; name?: string; updatedAt?: unknown }>) => {
-            setDocuments(sheets);
+        const unsubscribe = subscribeToUserSheets((sheets) => {
+            setDocuments(sheets as SheetDoc[]);
         });
         return () => unsubscribe();
     }, []);
 
-    const handleCreateNewSheet = async () => {
+    const handleNewSheetClick = () => {
         if (!user || isCreating) return;
+        setShowModal(true);
+    };
+
+    const handleModalConfirm = async (title: string) => {
+        if (!user) return;
+        setShowModal(false);
         setIsCreating(true);
         try {
-            const newId = await createNewSpreadsheet(user.uid);
+            const newId = await createNewSpreadsheet(user.uid, title);
             router.push(`/sheet/${newId}`);
         } catch (error) {
             console.error("Failed to create spreadsheet:", error);
@@ -33,6 +48,8 @@ export default function DashboardPage() {
             setIsCreating(false);
         }
     };
+
+    const handleModalCancel = () => setShowModal(false);
 
     const formatDate = (timestamp: unknown) => {
         if (!timestamp) return "Just now";
@@ -44,6 +61,9 @@ export default function DashboardPage() {
         }
         return "Recently";
     };
+
+    const getTitle = (doc: SheetDoc) =>
+        doc.title || doc.name || "Untitled Spreadsheet";
 
     return (
         <ProtectedRoute>
@@ -78,7 +98,7 @@ export default function DashboardPage() {
                             )}
 
                             <button
-                                onClick={handleCreateNewSheet}
+                                onClick={handleNewSheetClick}
                                 disabled={isCreating}
                                 className={`flex items-center gap-2 text-white px-4 py-2 rounded-lg transition-all font-medium shadow-sm ${isCreating ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
                                     }`}
@@ -91,25 +111,43 @@ export default function DashboardPage() {
                         </div>
                     </header>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                        {documents.map((doc) => (
-                            <Link
-                                key={doc.id}
-                                href={`/sheet/${doc.id}`}
-                                className="group bg-white border border-gray-200 rounded-xl p-5 hover:border-green-500 hover:shadow-md transition-all cursor-pointer flex flex-col h-40"
-                            >
-                                <div className="flex-1">
-                                    <FileSpreadsheet className="w-8 h-8 text-green-600 mb-3 opacity-80 group-hover:opacity-100 transition-opacity" />
-                                    <h3 className="font-semibold text-gray-900 line-clamp-1">{doc.name || "Untitled Spreadsheet"}</h3>
-                                </div>
-                                <div className="text-sm text-gray-500 mt-auto">
-                                    Opened {formatDate(doc.updatedAt)}
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
+                    {documents.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-24 text-center">
+                            <FileSpreadsheet className="w-16 h-16 text-gray-300 mb-4" />
+                            <p className="text-gray-500 text-lg font-medium">No spreadsheets yet</p>
+                            <p className="text-gray-400 text-sm mt-1">Click &ldquo;New Blank Spreadsheet&rdquo; to get started</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                            {documents.map((doc) => (
+                                <Link
+                                    key={doc.id}
+                                    href={`/sheet/${doc.id}`}
+                                    className="group bg-white border border-gray-200 rounded-xl p-5 hover:border-green-500 hover:shadow-md transition-all cursor-pointer flex flex-col h-40"
+                                >
+                                    <div className="flex-1">
+                                        <FileSpreadsheet className="w-8 h-8 text-green-600 mb-3 opacity-80 group-hover:opacity-100 transition-opacity" />
+                                        <h3 className="font-semibold text-gray-900 line-clamp-2 leading-snug">
+                                            {getTitle(doc)}
+                                        </h3>
+                                    </div>
+                                    <div className="text-sm text-gray-400 mt-auto pt-2 border-t border-gray-50">
+                                        Opened {formatDate(doc.updatedAt)}
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
+
+            {/* Create Sheet Modal */}
+            {showModal && (
+                <CreateSheetModal
+                    onConfirm={handleModalConfirm}
+                    onCancel={handleModalCancel}
+                />
+            )}
         </ProtectedRoute>
     );
 }

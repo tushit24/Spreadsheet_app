@@ -119,17 +119,46 @@ export function subscribeToSheet(
     return unsubscribe;
 }
 
-export async function createNewSpreadsheet(userId: string): Promise<string> {
+export async function createNewSpreadsheet(userId: string, title = "Untitled Spreadsheet"): Promise<string> {
     const newId = crypto.randomUUID();
     const ref = getSheetRef(newId);
     await setDoc(ref, {
-        name: "Untitled Spreadsheet",
+        title,
+        name: title, // keep legacy `name` field for dashboard backwards-compat
         ownerId: userId,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
-        cells: {}
+        cells: {},
+        formats: {},
     });
     return newId;
+}
+
+/** Updates just the title of a sheet document. */
+export async function updateSheetTitle(sheetId: string, title: string): Promise<void> {
+    const ref = getSheetRef(sheetId);
+    await updateDoc(ref, {
+        title,
+        name: title, // keep dashboard card in sync
+        updatedAt: serverTimestamp(),
+    });
+}
+
+/**
+ * Subscribes to real-time title changes for a sheet.
+ * Calls onChange whenever the title field changes.
+ */
+export function subscribeToSheetTitle(
+    sheetId: string,
+    onChange: (title: string) => void
+): () => void {
+    const ref = getSheetRef(sheetId);
+    return onSnapshot(ref, (snapshot) => {
+        if (snapshot.exists()) {
+            const data = snapshot.data();
+            onChange((data?.title as string) || (data?.name as string) || "Untitled Spreadsheet");
+        }
+    });
 }
 
 export function subscribeToUserSheets(
