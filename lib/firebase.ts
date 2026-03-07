@@ -16,6 +16,7 @@ import {
     Firestore,
     DocumentReference,
     deleteDoc,
+    getDocs,
 } from "firebase/firestore";
 import { SheetData, SheetFormatting } from "@/types/spreadsheet";
 
@@ -67,16 +68,28 @@ export async function saveSheetData(
  * Uses a dot-notation path so only that cell field is written.
  * This is much more efficient than re-writing the whole document.
  */
+export interface EditorInfo {
+    uid: string;
+    name: string;
+    color: string;
+}
+
+/**
+ * Updates a single cell value in Firestore.
+ * Also writes lastEditedBy / lastEditedAt when editor info is supplied.
+ */
 export async function saveCellValue(
     sheetId: string,
     cellId: string,
-    value: string
+    value: string,
+    editor?: EditorInfo
 ): Promise<void> {
     const ref = getSheetRef(sheetId);
-    // Dot notation: cells.A1 = "10"
-    await updateDoc(ref, { [`cells.${cellId}`]: value }).catch(async () => {
-        // Document doesn't exist yet — create it first
-        await setDoc(ref, { cells: { [cellId]: value } }, { merge: true });
+    const extra = editor
+        ? { lastEditedBy: { uid: editor.uid, name: editor.name, color: editor.color }, lastEditedAt: serverTimestamp() }
+        : {};
+    await updateDoc(ref, { [`cells.${cellId}`]: value, ...extra }).catch(async () => {
+        await setDoc(ref, { cells: { [cellId]: value }, ...extra }, { merge: true });
     });
 }
 
@@ -87,11 +100,15 @@ export async function saveCellValue(
 export async function saveCellFormat(
     sheetId: string,
     cellId: string,
-    style: Partial<SheetFormatting[string]>
+    style: Partial<SheetFormatting[string]>,
+    editor?: EditorInfo
 ): Promise<void> {
     const ref = getSheetRef(sheetId);
-    await updateDoc(ref, { [`formats.${cellId}`]: style }).catch(async () => {
-        await setDoc(ref, { formats: { [cellId]: style } }, { merge: true });
+    const extra = editor
+        ? { lastEditedBy: { uid: editor.uid, name: editor.name, color: editor.color }, lastEditedAt: serverTimestamp() }
+        : {};
+    await updateDoc(ref, { [`formats.${cellId}`]: style, ...extra }).catch(async () => {
+        await setDoc(ref, { formats: { [cellId]: style }, ...extra }, { merge: true });
     });
 }
 
@@ -218,4 +235,25 @@ export function subscribeToPresence(
         });
         onChange(users);
     });
+}
+
+// ---------------------------------------------------------------------------
+// Administration
+// ---------------------------------------------------------------------------
+
+export async function deleteSpreadsheet(sheetId: string): Promise<void> {
+    const sheetRef = doc(db, "sheets", sheetId);
+
+    // Attempt to delete presence subcollection first
+    try {
+        const presenceColRef = collection(db, "sheets", sheetId, "presence");
+        const presenceDocs = await getDocs(presenceColRef);
+        const deletePromises = presenceDocs.docs.map(d => deleteDoc(d.ref));
+        await Promise.all(deletePromises);
+    } catch (e) {
+        console.warn("Failed to delete presence subcollection", e);
+    }
+
+    // Delete the main document
+    await deleteDoc(sheetRef);
 }

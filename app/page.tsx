@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { Plus, FileSpreadsheet, LogOut } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,12 +7,16 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { subscribeToUserSheets, createNewSpreadsheet } from "@/lib/firebase";
 import CreateSheetModal from "@/components/CreateSheetModal";
+import SheetCard from "@/components/SheetCard";
 
 interface SheetDoc {
     id: string;
     title?: string;
     name?: string;
     updatedAt?: unknown;
+    ownerId?: string;
+    lastEditedBy?: { uid: string; name: string; color: string } | null;
+    lastEditedAt?: unknown;
 }
 
 export default function DashboardPage() {
@@ -50,20 +53,6 @@ export default function DashboardPage() {
     };
 
     const handleModalCancel = () => setShowModal(false);
-
-    const formatDate = (timestamp: unknown) => {
-        if (!timestamp) return "Just now";
-        if (typeof timestamp === "object" && timestamp !== null && "toDate" in timestamp) {
-            const ts = timestamp as { toDate: () => Date };
-            return ts.toDate().toLocaleDateString(undefined, {
-                year: "numeric", month: "short", day: "numeric",
-            });
-        }
-        return "Recently";
-    };
-
-    const getTitle = (doc: SheetDoc) =>
-        doc.title || doc.name || "Untitled Spreadsheet";
 
     return (
         <ProtectedRoute>
@@ -120,21 +109,11 @@ export default function DashboardPage() {
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                             {documents.map((doc) => (
-                                <Link
+                                <SheetCard
                                     key={doc.id}
-                                    href={`/sheet/${doc.id}`}
-                                    className="group bg-white border border-gray-200 rounded-xl p-5 hover:border-green-500 hover:shadow-md transition-all cursor-pointer flex flex-col h-40"
-                                >
-                                    <div className="flex-1">
-                                        <FileSpreadsheet className="w-8 h-8 text-green-600 mb-3 opacity-80 group-hover:opacity-100 transition-opacity" />
-                                        <h3 className="font-semibold text-gray-900 line-clamp-2 leading-snug">
-                                            {getTitle(doc)}
-                                        </h3>
-                                    </div>
-                                    <div className="text-sm text-gray-400 mt-auto pt-2 border-t border-gray-50">
-                                        Opened {formatDate(doc.updatedAt)}
-                                    </div>
-                                </Link>
+                                    doc={doc}
+                                    currentUserId={user?.uid || ""}
+                                />
                             ))}
                         </div>
                     )}

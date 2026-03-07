@@ -128,7 +128,8 @@ export default function SpreadsheetGrid({ sheetId }: SpreadsheetGridProps) {
                 setSyncState("saving");
                 if (debounceTimer.current) clearTimeout(debounceTimer.current);
                 debounceTimer.current = setTimeout(() => {
-                    saveCellValue(sheetId, cellId, value)
+                    const editorInfo = user ? { uid: user.uid, name: user.name, color: user.color } : undefined;
+                    saveCellValue(sheetId, cellId, value, editorInfo)
                         .then(() => {
                             setSyncState("saved");
                             setTimeout(() => setSyncState((s) => s === "saved" ? "idle" : s), 3000);
@@ -140,7 +141,7 @@ export default function SpreadsheetGrid({ sheetId }: SpreadsheetGridProps) {
                 }, 500);
             }
         },
-        [sheetId]
+        [sheetId, user]
     );
 
     // -----------------------------------------------------------------------
@@ -154,9 +155,10 @@ export default function SpreadsheetGrid({ sheetId }: SpreadsheetGridProps) {
                 const merged: CellStyle = { ...prev[cellId], ...patch };
                 return { ...prev, [cellId]: merged };
             });
-            saveCellFormat(sheetId, cellId, patch).catch(console.error);
+            const editorInfo = user ? { uid: user.uid, name: user.name, color: user.color } : undefined;
+            saveCellFormat(sheetId, cellId, patch, editorInfo).catch(console.error);
         },
-        [activeCell, sheetId]
+        [activeCell, sheetId, user]
     );
 
     // -----------------------------------------------------------------------
