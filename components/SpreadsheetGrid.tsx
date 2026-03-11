@@ -4,7 +4,7 @@ import React, { useState, useCallback, useEffect, useRef, useMemo } from "react"
 import VirtualGrid from "./VirtualGrid";
 import { SheetData, SheetFormatting, CellStyle } from "@/types/spreadsheet";
 import { buildDependencyGraph, updateDependents, DependencyGraph } from "@/lib/dependencyGraph";
-import { subscribeToSheet, saveCellValue, saveCellFormat, joinPresence, leavePresence, subscribeToSheetTitle, updateSheetTitle } from "@/lib/firebase";
+import { subscribeToSheet, saveCellValue, saveCellFormat, joinPresence, leavePresence, updatePresenceHeartbeat, subscribeToSheetTitle, updateSheetTitle } from "@/lib/firebase";
 import Presence from "./Presence";
 import { useAuth } from "@/contexts/AuthContext";
 import SaveIndicator, { SyncState } from "./SaveIndicator";
@@ -80,9 +80,16 @@ export default function SpreadsheetGrid({ sheetId }: SpreadsheetGridProps) {
     useEffect(() => {
         if (!user) return;
         joinPresence(sheetId, { uid: user.uid, name: user.name, color: user.color }).catch(console.error);
+
+        const heartbeat = setInterval(() => {
+            updatePresenceHeartbeat(sheetId, user.uid).catch(console.error);
+        }, 15000);
+
         const handleBeforeUnload = () => leavePresence(sheetId, user.uid).catch(console.error);
         window.addEventListener("beforeunload", handleBeforeUnload);
+
         return () => {
+            clearInterval(heartbeat);
             window.removeEventListener("beforeunload", handleBeforeUnload);
             leavePresence(sheetId, user.uid).catch(console.error);
         };

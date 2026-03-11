@@ -218,6 +218,11 @@ export async function joinPresence(sheetId: string, user: { uid: string, name: s
     });
 }
 
+export async function updatePresenceHeartbeat(sheetId: string, userId: string): Promise<void> {
+    const presenceRef = doc(db, "sheets", sheetId, "presence", userId);
+    await setDoc(presenceRef, { lastActive: serverTimestamp() }, { merge: true });
+}
+
 export async function leavePresence(sheetId: string, userId: string): Promise<void> {
     const presenceRef = doc(db, "sheets", sheetId, "presence", userId);
     await deleteDoc(presenceRef);

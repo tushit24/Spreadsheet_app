@@ -7,19 +7,29 @@ import { useAuth } from "@/contexts/AuthContext";
 export default function Presence({ sheetId }: { sheetId: string }) {
     const { user } = useAuth();
     const [activeUsers, setActiveUsers] = useState<PresenceUser[]>([]);
+    const [now, setNow] = useState(Date.now());
+
+    // Update the 'now' timestamp periodically to clean up stale users
+    useEffect(() => {
+        const interval = setInterval(() => setNow(Date.now()), 5000);
+        return () => clearInterval(interval);
+    }, []);
 
     useEffect(() => {
         const unsubscribe = subscribeToPresence(sheetId, (users) => {
-            // Filter out the current user if we want just "other collaborators",
-            // or we highlight the current user. Here we list everyone.
             setActiveUsers(users);
         });
 
         return () => unsubscribe();
     }, [sheetId]);
 
-    // If only the current user is active, don't show the collaborator list, or just show "Only you"
-    const others = activeUsers.filter(u => u.uid !== user?.uid);
+    // Use a 30-second heartbeat threshold
+    const others = activeUsers.filter(u => {
+        if (u.uid === user?.uid) return false;
+        if (!u.lastActive) return true; // optimistic if no timestamp yet
+        const lastActiveTime = typeof u.lastActive.toDate === 'function' ? u.lastActive.toDate().getTime() : 0;
+        return (now - lastActiveTime) < 30000;
+    });
 
     if (others.length === 0) {
         return (
